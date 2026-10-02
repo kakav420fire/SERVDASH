@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server Dashboard</title>
+<style>
+:root{--bg:#0f1419;--card:#1a212b;--text:#e6edf3;--mut:#8b98a5;--acc:#3ddc84;--bad:#ff5c5c;--line:#2a3441}
+@media (prefers-color-scheme:light){:root{--bg:#f4f6f8;--card:#fff;--text:#1b2430;--mut:#667788;--acc:#17a35a;--bad:#d33;--line:#dde3ea}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif;padding:20px}
+.wrap{max-width:1000px;margin:auto}
+h1{margin:0 0 4px;font-size:28px}
+.sub{color:var(--mut);margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.big{font-size:26px;font-weight:700}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--mut)}
+.on{background:var(--acc)}.off{background:var(--bad)}
+.motd{font-family:ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin-top:8px;word-break:break-word}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-size:12px;text-transform:uppercase}
+.p{display:flex;align-items:center;gap:8px}
+.p img{width:24px;height:24px;border-radius:4px;image-rendering:pixelated}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:4px 10px 4px 4px}
+.chip img{width:22px;height:22px;border-radius:50%}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.mut{color:var(--mut)}
+svg{width:100%;height:90px;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="name">Server</h1>
+  <div class="sub">Live status refreshes every 30 seconds. <span id="upd"></span></div>
+
+  <div class="grid">
+    <div class="card"><h2>Status</h2><div class="big"><span id="dot" class="dot"></span><span id="status">...</span></div></div>
+    <div class="card"><h2>Players online</h2><div class="big" id="count">-</div></div>
+    <div class="card"><h2>Version</h2><div class="big" id="ver" style="font-size:20px">-</div></div>
+    <div class="card"><h2>Software</h2><div class="big" id="soft" style="font-size:20px">-</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h2>Message of the day</h2>
+    <div class="motd" id="motd">-</div>
+    <div class="mut" style="margin-top:8px">Address: <b id="addr"></b></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h2>Online right now</h2>
+    <div class="chips" id="online"><span class="mut">Loading...</span></div>
+  </div>
+
+  <div class="cols">
+    <div class="card"><h2>Player count (this browser's history)</h2><svg id="spark" viewBox="0 0 300 90" preserveAspectRatio="none"></svg><div class="mut" id="peak"></div></div>
+    <div class="card"><h2>Community totals</h2><div id="totals" class="mut">No playtime.json found yet.</div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Playtime leaderboard</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>#</th><th>Player</th><th>Playtime</th><th></th><th>Deaths</th><th>Mobs killed</th><th>Last seen</th></tr></thead>
+      <tbody id="board"><tr><td colspan="7" class="mut">Loading...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<script>
+// ====== CHANGE THESE ======
+const SERVER_ADDRESS = "sdss-smp.modrinth.gg"; // your server address from Modrinth
+const REFRESH_SECONDS = 30;
+// ==========================
+
+const $ = id => document.getElementById(id);
+const head = n => `https://mc-heads.net/avatar/${encodeURIComponent(n)}/48`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtH = h => h >= 24 ? `${Math.floor(h/24)}d ${Math.round(h%24)}h` : `${h.toFixed(1)}h`;
+let stats = {}, ranked = [];
+
+$("addr").textContent = SERVER_ADDRESS;
+$("name").textContent = SERVER_ADDRESS;
+
+async function loadStatus(){
+  try{
+    const r = await fetch(`https://api.mcsrvstat.us/3/${SERVER_ADDRESS}`);
+    const d = await r.json();
+    const up = !!d.online;
+    $("dot").className = "dot " + (up ? "on" : "off");
+    $("status").textContent = up ? "Online" : "Offline";
+    $("upd").textContent = "Updated " + new Date().toLocaleTimeString();
+    if(!up){ $("count").textContent = "0"; $("online").innerHTML = '<span class="mut">Server is offline.</span>'; return; }
+    const on = d.players?.online ?? 0, max = d.players?.max ?? "?";
+    $("count").textContent = `${on} / ${max}`;
+    $("ver").textContent = d.version || "-";
+    $("soft").textContent = d.software || "Vanilla";
+    $("motd").textContent = (d.motd?.clean || []).join("\n") || "-";
+    $("motd").style.whiteSpace = "pre-line";
+    const list = d.players?.list || [];
+    $("online").innerHTML = list.length
+      ? list.map(p => `<span class="chip"><img src="${head(p.name)}" alt=""><span>${esc(p.name)}</span></span>`).join("")
+      : `<span class="mut">${on ? "Player names hidden by server." : "Nobody online."}</span>`;
+    track(on);
+  }catch(e){
+    $("status").textContent = "Can't reach status API";
+  }
+}
+
+function track(n){
+  let h = [];
+  try{ h = JSON.parse(localStorage.getItem("pc_hist") || "[]"); }catch(e){}
+  h.push(n); h = h.slice(-120);
+  try{ localStorage.setItem("pc_hist", JSON.stringify(h)); }catch(e){}
+  const max = Math.max(1, ...h);
+  const pts = h.map((v,i) => `${(i/Math.max(1,h.length-1))*300},${85-(v/max)*80}`).join(" ");
+  $("spark").innerHTML = `<polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="2"/>`;
+  $("peak").textContent = `Peak seen: ${max} (last ${h.length} checks)`;
+}
+
+async function loadPlaytime(){
+  try{
+    const r = await fetch("playtime.json?t=" + Date.now());
+    if(!r.ok) throw 0;
+    const d = await r.json();
+    const ps = (d.players || []).slice().sort((a,b) => b.hours - a.hours);
+    const top = ps[0]?.hours || 1;
+    const tot = ps.reduce((s,p) => s + p.hours, 0);
+    $("board").innerHTML = ps.map((p,i) => `<tr>
+      <td>${i+1}</td>
+      <td><div class="p"><img src="${head(p.name)}" alt="">${esc(p.name)}</div></td>
+      <td>${fmtH(p.hours)}</td>
+      <td><div class="bar"><i style="width:${(p.hours/top)*100}%"></i></div></td>
+      <td>${p.deaths ?? "-"}</td><td>${p.mobs_killed ?? "-"}</td>
+      <td class="mut">${p.last_seen ? new Date(p.last_seen).toLocaleDateString() : "-"}</td></tr>`).join("");
+    $("totals").innerHTML = `
+      <div class="big" style="color:var(--text)">${Math.round(tot).toLocaleString()} hours</div>
+      <div>played across ${ps.length} players</div>
+      <div>Average: ${(tot/Math.max(1,ps.length)).toFixed(1)}h per player</div>
+      <div>Total deaths: ${ps.reduce((s,p)=>s+(p.deaths||0),0).toLocaleString()}</div>
+      <div>Total mobs killed: ${ps.reduce((s,p)=>s+(p.mobs_killed||0),0).toLocaleString()}</div>
+      <div class="mut" style="margin-top:6px">Data generated ${d.generated ? new Date(d.generated).toLocaleString() : "?"}</div>`;
+  }catch(e){
+    $("board").innerHTML = '<tr><td colspan="7" class="mut">Upload playtime.json next to this page to see the leaderboard.</td></tr>';
+  }
+}
+
+loadStatus(); loadPlaytime();
+setInterval(loadStatus, REFRESH_SECONDS * 1000);
+setInterval(loadPlaytime, 5 * 60 * 1000);
+</script>
+</body>
+</html>
