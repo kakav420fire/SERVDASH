@@ -4,134 +4,132 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Server Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f1419;--card:#1a212b;--text:#e6edf3;--mut:#8b98a5;--acc:#3ddc84;--bad:#ff5c5c;--line:#2a3441}
-@media (prefers-color-scheme:light){:root{--bg:#f4f6f8;--card:#fff;--text:#1b2430;--mut:#667788;--acc:#17a35a;--bad:#d33;--line:#dde3ea}}
+:root{--bg:#14110d;--card:rgba(32,26,20,.88);--text:#efe9df;--mut:#a39a8b;--acc:#6fcf4a;--gold:#f5c542;--bad:#ff6b5c;--line:#4a3b2a;--hi:#6a563d}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif;padding:20px}
-.wrap{max-width:1000px;margin:auto}
-.top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
-.top img{width:64px;height:64px;border-radius:10px;image-rendering:pixelated;background:var(--card);display:none}
-h1{margin:0;font-size:28px}
+html,body{margin:0}
+body{background:var(--bg) center/256px;image-rendering:auto;color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif;padding:0 20px 40px;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(10,8,6,.55),rgba(10,8,6,.85));z-index:-1}
+.wrap{max-width:1040px;margin:auto}
+.grass{height:18px;margin:0 -20px;background:repeating-linear-gradient(90deg,#5fa83a 0 16px,#4e9230 16px 32px);border-bottom:6px solid #6b4a2b;box-shadow:0 4px 0 #4a321b}
+.top{display:flex;align-items:center;gap:16px;margin:26px 0 4px}
+.top img{width:64px;height:64px;image-rendering:pixelated;background:var(--card);border:3px solid var(--line);display:none}
+h1{margin:0;font:400 38px/1 VT323,monospace;letter-spacing:.03em;word-break:break-all}
 .sub{color:var(--mut);margin-bottom:20px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-.card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
-.big{font-size:24px;font-weight:700;word-break:break-word}
-.sm{font-size:18px}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--mut)}
-.on{background:var(--acc)}.off{background:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:12px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px;margin-bottom:12px}
+.card{background:var(--card);border:3px solid var(--line);border-top-color:var(--hi);border-left-color:var(--hi);padding:16px;backdrop-filter:blur(3px);margin-bottom:0}
+.full{margin-bottom:12px}
+.card h2{margin:0 0 10px;font:400 20px/1 VT323,monospace;letter-spacing:.08em;color:var(--mut)}
+.big{font:400 34px/1.1 VT323,monospace;word-break:break-word}
+.sm{font-size:28px}
+.dot{display:inline-block;width:12px;height:12px;margin-right:8px;background:var(--mut)}
+.on{background:var(--acc);animation:pulse 2s infinite}.off{background:var(--bad)}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(111,207,74,0)}0%{box-shadow:0 0 0 0 rgba(111,207,74,.55)}}
 .motd{font-size:22px;font-weight:600;padding:6px 0}
-.real{font-family:ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;word-break:break-word;white-space:pre-line}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:4px 12px 4px 4px}
-.chip img{width:24px;height:24px;border-radius:50%}
-.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;background:var(--acc);width:0}
-.mut{color:var(--mut)}
+.real{font:16px/1.5 ui-monospace,monospace;background:rgba(0,0,0,.35);padding:10px;white-space:pre-line;word-break:break-word}
+.bar{height:10px;background:rgba(0,0,0,.45);margin-top:8px;border:2px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--acc);width:0;transition:width .8s}
+.mut{color:var(--mut)}.gold{color:var(--gold)}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.pl{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3);border:2px solid var(--line);padding:8px}
+.pl img{width:40px;height:40px;image-rendering:pixelated}
+.pl b{display:block;font-weight:600;word-break:break-all}
+.pl small{color:var(--mut);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:rgba(0,0,0,.3);border:2px solid var(--line);padding:2px 9px;font-size:13px}
 table{width:100%;border-collapse:collapse}
 td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
 td:first-child{color:var(--mut);width:42%}
 td:last-child{word-break:break-word}
+.feed{list-style:none;margin:0;padding:0;max-height:210px;overflow:auto}
+.feed li{padding:5px 0;border-bottom:1px solid var(--line);font-size:14px}
+.feed .j{color:var(--acc)}.feed .l{color:var(--bad)}
 svg{width:100%;height:90px;display:block}
+.rec{animation:rec 1.6s ease-out 3}
+@keyframes rec{0%,100%{box-shadow:0 0 0 0 rgba(245,197,66,0)}40%{box-shadow:0 0 24px 4px rgba(245,197,66,.6)}}
+.orb{position:fixed;bottom:-14px;width:8px;height:8px;background:#9bff5a;box-shadow:0 0 8px #9bff5a;opacity:0;z-index:-1;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}10%{opacity:.7}90%{opacity:.5}100%{transform:translateY(-105vh) translateX(30px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.orb{display:none}.on,.rec{animation:none}.bar i{transition:none}}
 </style>
 </head>
 <body>
+<div class="grass"></div>
 <div class="wrap">
   <div class="top"><img id="icon" alt=""><h1 id="name">Server</h1></div>
   <div class="sub">Live status refreshes every 30 seconds. <span id="upd"></span></div>
 
   <div class="grid">
-    <div class="card"><h2>Status</h2><div class="big"><span id="dot" class="dot"></span><span id="status">...</span></div></div>
-    <div class="card"><h2>Players online</h2><div class="big" id="count">-</div><div class="bar"><i id="fill"></i></div></div>
-    <div class="card"><h2>Version</h2><div class="big sm" id="ver">-</div></div>
-    <div class="card"><h2>Software</h2><div class="big sm" id="soft">-</div></div>
+    <div class="card"><h2>STATUS</h2><div class="big"><span id="dot" class="dot"></span><span id="status">...</span></div></div>
+    <div class="card"><h2>PLAYERS ONLINE</h2><div class="big" id="count">-</div><div class="bar"><i id="fill"></i></div></div>
+    <div class="card" id="peakCard"><h2>ALL-TIME PEAK</h2><div class="big gold" id="peakN">7</div><div class="mut" id="peakT"></div></div>
+    <div class="card"><h2>VERSION</h2><div class="big sm" id="ver">-</div></div>
+    <div class="card"><h2>SOFTWARE</h2><div class="big sm" id="soft">-</div></div>
   </div>
 
-  <div class="card" style="margin-bottom:12px">
-    <h2>Message of the day</h2>
+  <div class="card full">
+    <h2>MESSAGE OF THE DAY</h2>
     <div class="motd" id="motd"></div>
     <div class="mut">New one every day.</div>
   </div>
 
-  <div class="card" style="margin-bottom:12px">
-    <h2>Online right now</h2>
-    <div class="chips" id="online"><span class="mut">Loading...</span></div>
+  <div class="card full">
+    <h2>ONLINE RIGHT NOW</h2>
+    <div class="players" id="online"><span class="mut">Loading...</span></div>
   </div>
 
   <div class="cols">
-    <div class="card"><h2>Server details</h2><table id="details"></table></div>
+    <div class="card"><h2>SERVER DETAILS</h2><table id="details"></table></div>
     <div class="card">
-      <h2>Real server MOTD</h2>
+      <h2>REAL SERVER MOTD</h2>
       <div class="real" id="real">-</div>
-      <h2 style="margin-top:18px">Player count history (this browser)</h2>
+      <h2 style="margin-top:18px">PLAYER COUNT HISTORY</h2>
       <svg id="spark" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
-      <div class="mut" id="peak"></div>
-      <div class="mut" id="uptime"></div>
+      <div class="mut" id="stats"></div>
     </div>
+  </div>
+
+  <div class="cols">
+    <div class="card"><h2>ACTIVITY</h2><ul class="feed" id="feed"><li class="mut">Watching for joins and leaves...</li></ul></div>
+    <div class="card"><h2>RECENTLY SEEN</h2><div class="chips" id="seen"><span class="mut">Nobody yet.</span></div></div>
+  </div>
+
+  <div class="card full" id="extraCard" style="display:none">
+    <h2>PLUGINS / MODS</h2><div class="chips" id="extra"></div>
   </div>
 </div>
 
 <script>
 // ====== CHANGE THESE ======
-const SERVER_ADDRESS = "sdss-smp.modrinth.gg"; // your server address from Modrinth
+const SERVER_ADDRESS = "sdss-smp.modrinth.gg";
 const REFRESH_SECONDS = 30;
+const PEAK_SEED = 7; // all-time peak starts here and only ever goes up
 // ==========================
 
-// Daily random messages. Add or delete whatever you want.
 const MESSAGES = [
-  "the fridge is running",
-  "gerald was here",
-  "bread has no legs",
-  "somebody left a sock in the nether",
-  "one (1) chicken is missing",
-  "turn left at the potato",
-  "dont look behind the couch",
-  "wednesday is a state of mind",
-  "the cow knows what you did",
-  "have u tried turning the sun off",
-  "free pickle with every login",
-  "i saw a boat go uphill",
-  "spaghetti is just long pasta",
-  "your chair is too far from your desk",
-  "ten hours until soup",
-  "the moon is mid today",
-  "someone ate the last block",
-  "a villager said hmm",
-  "this message is fake",
-  "do not trust the left shoe",
-  "yes",
-  "carrots are loud today",
-  "the floor is probably lava",
-  "banana phone is ringing",
-  "my cat is the real admin",
-  "lol",
-  "nobody asked for this tuesday",
-  "the wifi smells like feet",
-  "a wild sandwich appeared",
-  "brb touching grass",
-  "dave left the oven on",
-  "the zombie has a mortgage",
-  "everyone is a little bit bread",
-  "there are exactly 4 clouds",
-  "never trust a fish with a watch",
-  "soup soup soup soup",
-  "its giving gravel",
-  "an enderman looked at me funny",
-  "pls feed the dog block",
-  "the toaster is online",
-  "cheese but sideways",
-  "happy random day",
-  "unplug the horse",
+  "the fridge is running","gerald was here","bread has no legs","somebody left a sock in the nether",
+  "one (1) chicken is missing","turn left at the potato","dont look behind the couch","wednesday is a state of mind",
+  "the cow knows what you did","have u tried turning the sun off","free pickle with every login","i saw a boat go uphill",
+  "spaghetti is just long pasta","your chair is too far from your desk","ten hours until soup","the moon is mid today",
+  "someone ate the last block","a villager said hmm","this message is fake","do not trust the left shoe","yes",
+  "carrots are loud today","the floor is probably lava","banana phone is ringing","my cat is the real admin","lol",
+  "nobody asked for this tuesday","the wifi smells like feet","a wild sandwich appeared","brb touching grass",
+  "dave left the oven on","the zombie has a mortgage","everyone is a little bit bread","there are exactly 4 clouds",
+  "never trust a fish with a watch","soup soup soup soup","its giving gravel","an enderman looked at me funny",
+  "pls feed the dog block","the toaster is online","cheese but sideways","happy random day","unplug the horse",
   "gravy has entered the chat"
 ];
 
 const $ = id => document.getElementById(id);
 const head = n => `https://mc-heads.net/avatar/${encodeURIComponent(n)}/48`;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store = {
+  get(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const ago = t => { const s = Math.max(0, (Date.now()-t)/1000|0); if(s<60) return "just now"; if(s<3600) return (s/60|0)+"m ago"; if(s<86400) return (s/3600|0)+"h ago"; return (s/86400|0)+"d ago"; };
 
-// Same message for everyone all day, changes at local midnight
 function dailyMessage(){
   const d = new Date();
   const day = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
@@ -140,10 +138,81 @@ function dailyMessage(){
   return MESSAGES[x % MESSAGES.length];
 }
 
+// ---------- background: dirt texture + a few xp orbs ----------
+(function(){
+  const c = document.createElement("canvas"); c.width = c.height = 16;
+  const g = c.getContext("2d");
+  for(let y=0;y<16;y++) for(let x=0;x<16;x++){
+    const v = 28 + Math.random()*22|0;
+    g.fillStyle = `rgb(${v+14},${v+4},${v-8})`; g.fillRect(x,y,1,1);
+  }
+  document.body.style.backgroundImage = `url(${c.toDataURL()})`;
+  document.body.style.imageRendering = "pixelated";
+  for(let i=0;i<10;i++){
+    const o = document.createElement("div"); o.className = "orb";
+    o.style.left = Math.random()*100 + "vw";
+    o.style.animationDuration = 14 + Math.random()*14 + "s";
+    o.style.animationDelay = -Math.random()*20 + "s";
+    document.body.appendChild(o);
+  }
+})();
+
 $("name").textContent = SERVER_ADDRESS;
 $("motd").textContent = dailyMessage();
 
 const row = (k, v) => (v === undefined || v === null || v === "" ? "" : `<tr><td>${k}</td><td>${esc(v)}</td></tr>`);
+
+// ---------- all-time peak (stored on its own, never trimmed) ----------
+let peak = store.get("mc_peak", null);
+if(!peak || typeof peak.n !== "number" || peak.n < PEAK_SEED) peak = {n: PEAK_SEED, t: peak && peak.t || null};
+store.set("mc_peak", peak);
+function showPeak(flash){
+  $("peakN").textContent = peak.n;
+  $("peakT").textContent = peak.t ? "set " + new Date(peak.t).toLocaleDateString() : "starting record";
+  if(flash){ $("peakCard").classList.remove("rec"); void $("peakCard").offsetWidth; $("peakCard").classList.add("rec"); }
+}
+showPeak();
+
+// ---------- join/leave tracking ----------
+let prev = null;           // names online at last check
+const joinedAt = {};       // name -> time we saw them join
+let feed = store.get("mc_feed", []);
+let seen = store.get("mc_seen", {});
+function renderFeed(){
+  $("feed").innerHTML = feed.length
+    ? feed.map(e => `<li class="${e.k}">${e.k==="j"?"+":"-"} ${esc(e.n)} ${e.k==="j"?"joined":"left"} <span class="mut">${ago(e.t)}</span></li>`).join("")
+    : '<li class="mut">Watching for joins and leaves...</li>';
+  const names = Object.keys(seen).sort((a,b) => seen[b].last - seen[a].last).slice(0, 24);
+  $("seen").innerHTML = names.length
+    ? names.map(n => `<span class="chip">${esc(n)} <span class="mut">${ago(seen[n].last)} · ${seen[n].visits}x</span></span>`).join("")
+    : '<span class="mut">Nobody yet.</span>';
+}
+function trackPlayers(names){
+  const now = Date.now(), cur = new Set(names);
+  names.forEach(n => {
+    if(!seen[n]) seen[n] = {first: now, last: now, visits: 1};
+    seen[n].last = now;
+    if(prev && !prev.has(n)){ joinedAt[n] = now; seen[n].visits++; feed.unshift({k:"j", n, t:now}); }
+  });
+  if(prev) prev.forEach(n => { if(!cur.has(n)){ feed.unshift({k:"l", n, t:now}); delete joinedAt[n]; } });
+  feed = feed.slice(0, 40); prev = cur;
+  store.set("mc_feed", feed); store.set("mc_seen", seen); renderFeed();
+}
+
+// ---------- history + stats ----------
+function track(up, n){
+  let h = store.get("mc_hist", []);
+  h.push({t: Date.now(), u: up ? 1 : 0, n}); h = h.slice(-240);
+  store.set("mc_hist", h);
+  if(n > peak.n){ peak = {n, t: Date.now()}; store.set("mc_peak", peak); showPeak(true); }
+  else showPeak();
+  const max = Math.max(1, ...h.map(x => x.n));
+  const pts = h.map((x,i) => `${(i/Math.max(1,h.length-1))*300},${85-(x.n/max)*80}`).join(" ");
+  $("spark").innerHTML = `<polyline points="${pts}" fill="none" stroke="#6fcf4a" stroke-width="2"/>`;
+  const avg = (h.reduce((a,x) => a + x.n, 0) / h.length).toFixed(1);
+  const pct = Math.round(h.filter(x => x.u).length / h.length * 100);
+  $("stats").innerHTML = `Average: ${avg} players &middot; online in ${pct}% of the last ${h.length} checks this browser made`;
+}
 
 async function loadStatus(){
   try{
@@ -173,9 +242,20 @@ async function loadStatus(){
     $("real").textContent = (d.motd?.clean || []).join("\n") || "-";
 
     const list = d.players?.list || [];
-    $("online").innerHTML = list.length
-      ? list.map(p => `<span class="chip"><img src="${head(p.name)}" alt=""><span>${esc(p.name)}</span></span>`).join("")
-      : `<span class="mut">${on ? "Player names hidden by server." : "Nobody online."}</span>`;
+    if(list.length){
+      $("online").innerHTML = list.map(p => {
+        const j = joinedAt[p.name];
+        return `<div class="pl"><img src="${head(p.name)}" alt=""><div><b>${esc(p.name)}</b><small>${j ? "joined " + ago(j) : "here since page opened"}${p.uuid ? " · " + esc(p.uuid.slice(0,8)) : ""}</small></div></div>`;
+      }).join("");
+      trackPlayers(list.map(p => p.name));
+    } else {
+      $("online").innerHTML = `<span class="mut">${on ? "Player names hidden by server (" + on + " online)." : "Nobody online."}</span>`;
+      trackPlayers([]);
+    }
+
+    const extra = [...(d.plugins || []).map(p => p.name + (p.version ? " " + p.version : "")), ...(d.mods || []).map(m => m.name + (m.version ? " " + m.version : ""))];
+    $("extraCard").style.display = extra.length ? "block" : "none";
+    $("extra").innerHTML = extra.map(x => `<span class="chip">${esc(x)}</span>`).join("");
 
     rows.push(
       row("Version", d.version),
@@ -183,9 +263,14 @@ async function loadStatus(){
       row("Protocol", d.protocol?.name ? `${d.protocol.name} (${d.protocol.version})` : d.protocol?.version),
       row("Gamemode", d.gamemode),
       row("World name", d.map?.clean),
-      row("Players", `${on} / ${max}`),
+      row("Players", `${on} / ${max}${max ? " (" + Math.round(on / max * 100) + "% full)" : ""}`),
+      row("All-time peak", peak.n),
+      row("Server info", (d.info?.clean || []).join(" ")),
       row("Plugins loaded", d.plugins?.length),
       row("Mods loaded", d.mods?.length),
+      row("Ping enabled", d.debug?.ping === undefined ? "" : (d.debug.ping ? "Yes" : "No")),
+      row("Query enabled", d.debug?.query === undefined ? "" : (d.debug.query ? "Yes" : "No")),
+      row("SRV record", d.debug?.srv === undefined ? "" : (d.debug.srv ? "Yes" : "No")),
       row("Server ID", d.serverid),
       row("Blocked by Mojang EULA", d.eula_blocked === undefined ? "" : (d.eula_blocked ? "Yes" : "No")),
       row("Status cached until", d.debug?.cachetime ? new Date(d.debug.cachetime * 1000 + 60000).toLocaleTimeString() : "")
@@ -196,21 +281,10 @@ async function loadStatus(){
   }
 }
 
-function track(up, n){
-  let h = [];
-  try{ h = JSON.parse(localStorage.getItem("hist2") || "[]"); }catch(e){}
-  h.push({u: up ? 1 : 0, n}); h = h.slice(-120);
-  try{ localStorage.setItem("hist2", JSON.stringify(h)); }catch(e){}
-  const max = Math.max(1, ...h.map(x => x.n));
-  const pts = h.map((x,i) => `${(i/Math.max(1,h.length-1))*300},${85-(x.n/max)*80}`).join(" ");
-  $("spark").innerHTML = `<polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="2"/>`;
-  $("peak").textContent = `Peak seen: ${Math.max(...h.map(x => x.n))} (last ${h.length} checks)`;
-  const pct = Math.round(h.filter(x => x.u).length / h.length * 100);
-  $("uptime").textContent = `Online in ${pct}% of the checks this browser has made`;
-}
-
+renderFeed();
 loadStatus();
 setInterval(loadStatus, REFRESH_SECONDS * 1000);
+setInterval(renderFeed, 60000);
 </script>
 </body>
 </html>
